@@ -1,28 +1,56 @@
-CREATE TABLE IF NOT EXISTS Person (
-    id         INTEGER              COMMENT 'Уникальный идентификатор' PRIMARY KEY AUTO_INCREMENT ,
-    version    INTEGER NOT NULL     COMMENT 'Служебное поле hibernate',
-    first_name VARCHAR(50) NOT NULL COMMENT 'Имя',
-    age        INTEGER  NOT NULL    COMMENT 'Возраст'
+CREATE TABLE IF NOT EXISTS Organization (
+    id INTEGER COMMENT 'Unique identifier' PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50) NOT NULL,
+    full_name VARCHAR(50) NOT NULL,
+    inn VARCHAR(12) NOT NULL COMMENT 'Taxpayer Identification Number' UNIQUE,
+    kpp VARCHAR(9) NOT NULL COMMENT 'Code of the reason for registration' UNIQUE,
 );
-COMMENT ON TABLE Person IS 'Человек';
 
-CREATE TABLE IF NOT EXISTS House (
-    id         INTEGER              COMMENT 'Уникальный идентификатор' PRIMARY KEY AUTO_INCREMENT ,
-    version    INTEGER NOT NULL     COMMENT 'Служебное поле hibernate',
-    address    VARCHAR(50) NOT NULL COMMENT 'Адрес'
+ALTER TABLE Organization ADD FOREIGN KEY (id) REFERENCES Office(id_organization);
+
+CREATE TABLE IF NOT EXISTS Office (
+    id INTEGER COMMENT 'Unique identifier' PRIMARY KEY AUTO_INCREMENT,
+    id_organization  INTEGER NOT NULL UNIQUE,
+    name VARCHAR(50) NOT NULL,
+    address    VARCHAR(50) NOT NULL,
+    phone VARCHAR(16) UNIQUE,
+    is_active BIT COMMENT '1 is true, 0 is false'
 );
-COMMENT ON TABLE House IS 'Дом';
 
-CREATE TABLE IF NOT EXISTS Person_House (
-    person_id   INTEGER  NOT NULL COMMENT 'Уникальный идентификатор человека',
-    house_id    INTEGER  NOT NULL COMMENT 'Уникальный идентификатор дома',
+ALTER TABLE Office ADD FOREIGN KEY (id) REFERENCES Office(id_office);
 
-    PRIMARY KEY (person_id, house_id)
+CREATE TABLE IF NOT EXISTS Users (
+    id INTEGER COMMENT 'Unique identifier' PRIMARY KEY AUTO_INCREMENT,
+    id_office INTEGER,
+    first_name VARCHAR(50) NOT NULL,
+    second_name VARCHAR(50),
+    middle_name VARCHAR(50),
+    post VARCHAR(50) NOT NULL,
+    phone VARCHAR(16) UNIQUE,
+    citizenship_id INTEGER,
+    is_identified BIT COMMENT '1 is true, 0 is false'
 );
-COMMENT ON TABLE Person_House IS 'join-таблица для связи человека и дома';
 
-CREATE INDEX IX_Person_House_Id ON Person_House (house_id);
-ALTER TABLE Person_House ADD FOREIGN KEY (house_id) REFERENCES House(id);
+ALTER TABLE Users ADD FOREIGN KEY (id) REFERENCES Docs(doc_id);
+ALTER TABLE Users ADD FOREIGN KEY (citizenship_id) REFERENCES Countries(id);
 
-CREATE INDEX IX_House_Person_Id ON Person_House (person_id);
-ALTER TABLE Person_House ADD FOREIGN KEY (person_id) REFERENCES Person(id);
+CREATE TABLE IF NOT EXISTS Docs (
+    doc_id INTEGER NOT NULL UNIQUE PRIMARY KEY,
+    type_id INTEGER NOT NULL,
+    doc_number INTEGER NOT NULL UNIQUE,
+    doc_date VARCHAR(10) NOT NULL
+);
+
+ALTER TABLE Docs ADD FOREIGN KEY (type_id) REFERENCES TypeDoc(id);
+
+CREATE TABLE IF NOT EXISTS TypeDoc (
+    id INTEGER COMMENT 'Unique identifier' PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50) NOT NULL,
+    code VARCHAR(10) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS Countries (
+    id INTEGER COMMENT 'Unique identifier' PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50) NOT NULL,
+    code VARCHAR(10) NOT NULL
+);
